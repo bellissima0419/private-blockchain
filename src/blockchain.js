@@ -75,13 +75,26 @@ class Blockchain {
       }
       block.time = parseInt(new Date().getTime().toString().slice(0, -3))
 
+      // block.height = _chainHeight + 1
+      // self.height = _chainHeight + 1
       block.hash = SHA256(JSON.stringify(block)).toString()
+
+
+      let isChainValid = await self.validateChain()
+      // console.log('isChainValid: ', isChainValid);
+
       if (block) {
-        self.chain.push(block)
-        resolve(block)
+        if (isChainValid === 'valid chain') {
+          self.chain.push(block)
+          resolve(block)
+        } else {
+          reject("Invalid chain")
+        }
+
       } else {
-        reject(Error("Block Error"))
+        reject(Error("Error Processing Block"))
       }
+
     })
   }
 
@@ -100,7 +113,7 @@ class Blockchain {
       if (!message) {
         reject(Error("Address Error"))
       } else {
-        console.log(`Message: ${message}`)
+        console.log("message: ", message)
         resolve(message)
       }
     })
@@ -128,6 +141,12 @@ class Blockchain {
     return new Promise(async (resolve, reject) => {
       let messageTime = parseInt(message.split(":")[1])
       let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
+
+      // ***********************************************************
+      // Manually create time variables for testing purposes
+      // let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      // let currentTime = messageTime + 200
+      // ***********************************************************
 
       let timeElapsed = currentTime - messageTime
       if (timeElapsed < 300) {
@@ -195,14 +214,17 @@ class Blockchain {
       self.chain.forEach(async block => {
         let blockData = await block.getBData()
         // console.log("blockData", blockData)
+        // if (blockData) {
         if (blockData.address == address) {
           // stars.push(blockData.star)
           stars.push(blockData)
           // console.log("stars", stars)
         }
+        // }
       })
+      // if (stars.length > 0) {
       if (stars) {
-        // console.log("stars", stars)
+        console.log("stars", stars)
         resolve(stars)
       } else {
         reject(Error("No Stars Found"))
@@ -224,17 +246,22 @@ class Blockchain {
       self.chain.forEach(async block => {
         let isBlockValid = await block.validate()
         let previousBlock = await self.chain[self.chain.length - 1]
-        console.log("previousBlock", previousBlock)
+        // console.log("previousBlock", previousBlock)
         if (isBlockValid) {
           if (block.previousBlockHash !== previousBlock.hash) {
             errorLog.push(
-              `Broken Chain.\nThis block and previous Block hashes don't match\n ${block.previousBlockHash} !== ${previousBlock.hash}`
+              `Broken Chain.\nThis block and previous Block hashes don't match\n
+               Block height: ${block.height}:\n
+               ${block.previousBlockHash} !== ${previousBlock.hash}`
             )
           }
         }
       })
-      if (errorLog.length) {
+      if (errorLog.length > 0) {
+        console.log("errorLog", errorLog)
         resolve(errorLog)
+      } else {
+        resolve('valid chain')
       }
     })
   }
