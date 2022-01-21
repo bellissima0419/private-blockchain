@@ -36,26 +36,36 @@ class Block {
    */
   validate() {
     let self = this
-    // console.log(`this: ${this}`)
+    // console.log('this: ', this)
     return new Promise((resolve, reject) => {
       // Save in auxiliary variable the current block hash
       const _currentHash = self.hash
+
       if (!_currentHash) {
-        reject(new Error("Error validating the block. The hash is empty."))
+        reject("Error retrieving the block's hash.")
       }
 
-      // Recalculate the hash of the Block
-      const _verificationHash = SHA256(JSON.stringify(self)).toString()
+      // create a clone of the block to avoid changing the original object
+      // setting the hash to null to recalculate the hash
+      const clone = Object.assign({}, self, { hash: null })
+
+      // Recalculate the hash of the clone object for comparison
+      const _verificationHash = SHA256(JSON.stringify(clone)).toString()
+
+      // Compare the calculated hash with the saved hash
+      console.log('Are hashes equal? ', _currentHash === _verificationHash);
+
       if (!_verificationHash) {
-        reject(new Error("Error calculating the new hash."))
+        reject("Error recalculating the new hash.")
       }
-      // Comparing if the hashes changed
-      // Returning the Block is not valid
+
+      // if the hashes don't match resolve false
       if (_currentHash !== _verificationHash) {
-        console.log(`Hashes don't mactch: \n ${_currentHash} !== ${_verificationHash}`)
+        console.log(`🥺-Hashes don't mactch-🥺\n ${_currentHash} !== ${_verificationHash}`)
         resolve(false)
       } else {
-        // Returning the Block is valid
+        // if the hashes are equal, resolve with boolean true
+        console.log(`😍-Hashes mactch-😍\n ${_currentHash} === ${_verificationHash}`)
         resolve(true)
       }
     })
@@ -83,12 +93,20 @@ class Block {
       //   console.log("jsonDecoded: ", jsonDecoded)
       if (jsonDecoded && self.height > 0) {
         // console.log("jsonDecoded :D : ", jsonDecoded)
+
         resolve(jsonDecoded)
       } else if (self.height === 0) {
         console.log("Genesis block")
       }
+
+      //   else if (self.height === 0) {
+      //     reject(new Error("Error decoding the data. Genesis block."))
+      //   } else {
+      //     reject(new Error("Error decoding the data."))
+      //   }
     })
   }
 }
 
 module.exports.Block = Block // Exposing the Block class as a module
+
