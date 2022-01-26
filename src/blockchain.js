@@ -131,13 +131,13 @@ class Blockchain {
   submitStar(address, message, signature, star) {
     let self = this
     return new Promise(async (resolve, reject) => {
-      // let messageTime = parseInt(message.split(":")[1])
-      // let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      let messageTime = parseInt(message.split(":")[1])
+      let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
 
       // ***********************************************************
       // Manually create time variables for testing purposes
-      let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
-      let currentTime = messageTime + 200
+      // let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      // let currentTime = messageTime + 200
       // ***********************************************************
 
       let timeElapsed = currentTime - messageTime
@@ -242,13 +242,22 @@ class Blockchain {
     let self = this
     let errorLog = []
     return new Promise(async (resolve, reject) => {
+
       for (let block of self.chain) {
         if (block.height > 0) {
 
           let isBlockValid = await block.validate()
           // console.log("isBlockValid: ", isBlockValid);
+          // *****************************************//
+          //******/ Q U E S T I O N for Reviewer: 
+          // any difference between the two below?
+          // 1. if (isBlockValid === false) {
+          // 2. if (!isBlockValid) {
+          // *****************************************//
 
           if (isBlockValid === false) {
+            // if (!isBlockValid) {
+
             errorLog.push({ "isBlockValid": isBlockValid, "block.height": block.height, "block.hash": block.hash })
           }
 
