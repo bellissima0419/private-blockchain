@@ -63,9 +63,11 @@ class Blockchain {
   _addBlock(block) {
     let self = this
     return new Promise(async (resolve, reject) => {
-      let _chainHeight = await self.getChainHeight().then(height => {
-        return height
-      })
+
+      let _chainHeight = await self.getChainHeight()
+      console.log("**********************");
+      console.log("_chainHeight: ", _chainHeight)
+
       block.height = _chainHeight + 1
       self.height += 1
 
@@ -77,11 +79,18 @@ class Blockchain {
 
       block.hash = SHA256(JSON.stringify(block)).toString()
 
-      let isChainValid = await self.validateChain()
-      // console.log('isChainValid: ', isChainValid);
+      let errorLogs = await self.validateChain()
+      // console.log('errorLogs: ', errorLogs);
 
-      if (isChainValid.length === 0) {
+      if (errorLogs.length === 0) {
         self.chain.push(block)
+        console.log("**********************");
+        // console.log('_chainHeight 2: ', _chainHeight);
+        // console.log('block.height: ', block.height);
+        // console.log('self.height: ', self.height);
+        // console.log('self.chain.length: ', self.chain.length);
+        console.log('self.chain: ', self.chain);
+        console.log("**********************");
         resolve(block)
       } else {
         reject("Invalid chain")
@@ -131,13 +140,13 @@ class Blockchain {
   submitStar(address, message, signature, star) {
     let self = this
     return new Promise(async (resolve, reject) => {
-      let messageTime = parseInt(message.split(":")[1])
-      let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      // let messageTime = parseInt(message.split(":")[1])
+      // let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
 
       // ***********************************************************
       // Manually create time variables for testing purposes
-      // let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
-      // let currentTime = messageTime + 200
+      let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      let currentTime = messageTime + 200
       // ***********************************************************
 
       let timeElapsed = currentTime - messageTime
@@ -207,21 +216,29 @@ class Blockchain {
   getStarsByWalletAddress(address) {
     let self = this
     let stars = []
-    return new Promise((resolve, reject) => {
-      // *****************************************//
-      //**** */ Q U E S T I O N for Reviewer: Should I convert this to a for of loop?
-      //**** */ the same as the case on the validatechain method?
-      // *****************************************//
+    return new Promise(async (resolve, reject) => {
 
-      self.chain.forEach(async block => {
-        let blockData = await block.getBData()
-        // console.log("blockData", blockData)
-        if (blockData.address == address) {
-          // stars.push(blockData.star)
-          stars.push(blockData)
-          // console.log("stars", stars)
+      // self.chain.forEach(async block => {
+      //   let blockData = await block.getBData()
+      //   console.log("blockData inside forEach", blockData)
+      //   if (blockData.address === address) {
+      //     // stars.push(blockData.star)
+      //     stars.push(blockData)
+      //     // console.log("stars", stars)
+      //   }
+      // })
+
+      // refactoring from `forEach` to `for of`
+      for (let block of self.chain) {
+        if (block.height > 0) { // must check for  this or it wont work
+          let blockData = await block.getBData()
+          console.log('blockData: ', blockData)
+          if (blockData.address == address) {
+            stars.push(blockData)
+          }
         }
-      })
+      }
+
       // if (stars.length > 0) {
       if (stars) {
         console.log("stars", stars)
@@ -241,22 +258,16 @@ class Blockchain {
   validateChain() {
     let self = this
     let errorLog = []
+
     return new Promise(async (resolve, reject) => {
 
       for (let block of self.chain) {
         if (block.height > 0) {
 
           let isBlockValid = await block.validate()
-          // console.log("isBlockValid: ", isBlockValid);
-          // *****************************************//
-          //******/ Q U E S T I O N for Reviewer: 
-          // any difference between the two below?
-          // 1. if (isBlockValid === false) {
-          // 2. if (!isBlockValid) {
-          // *****************************************//
 
-          if (isBlockValid === false) {
-            // if (!isBlockValid) {
+          // if (isBlockValid === false) {
+          if (!isBlockValid) {
 
             errorLog.push({ "isBlockValid": isBlockValid, "block.height": block.height, "block.hash": block.hash })
           }

@@ -68,7 +68,7 @@ class Block {
         resolve(false)
       } else {
         // if the hashes are equal, resolve with boolean true
-        console.log(`😍-Hashes match-😍\n ${_currentHash} === ${_verificationHash}`)
+        // console.log(`😍-Hashes match-😍\n ${_currentHash} === ${_verificationHash}`)
         resolve(true)
       }
     })

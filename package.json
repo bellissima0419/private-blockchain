@@ -16,7 +16,8 @@
     "crypto-js": "^4.1.1",
     "express": "^4.17.2",
     "hex2ascii": "^0.0.3",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.15"
   },
   "devDependencies": {
     "dotenv": "^14.3.2"

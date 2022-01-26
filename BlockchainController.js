@@ -100,10 +100,14 @@ class BlockchainController {
         const address = req.params.address
         try {
           let stars = await this.blockchain.getStarsByWalletAddress(address)
-          if (stars) {
+          if (stars.length) {
             return res.status(200).json(stars)
           } else {
-            return res.status(404).send("Block Not Found!")
+            return res.status(404).send({
+              "message": "No Stars Found for this Address!",
+              "stars": stars
+            })
+
           }
         } catch (error) {
           return res.status(500).send("An error happened!")
@@ -117,7 +121,7 @@ class BlockchainController {
   chainValidation() {
     this.app.get("/validate-chain", async (req, res) => {
       try {
-        let validation = await this.blockchain.validateChain()
+        const validation = await this.blockchain.validateChain()
 
         if (validation) {
           return res.status(200).json({ "errorLog": validation })
