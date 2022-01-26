@@ -7,6 +7,7 @@
  * - `body-parser` This module allows to parse the body of the post request into a JSON
  */
 const express = require("express")
+const { port } = require('./config');
 const morgan = require("morgan")
 const bodyParser = require("body-parser")
 /**
@@ -31,8 +32,12 @@ class ApplicationServer {
   }
 
   initExpress() {
-    this.app.set("port", 8000)
+    // this.app.set("port", 8000)
+    this.app.set("port", port || 8000)
   }
+
+  // const port = process.env.PORT;
+  // console.log(`Your port is ${port}`);
 
   initExpressMiddleWare() {
     this.app.use(morgan("dev"))
@@ -47,7 +52,7 @@ class ApplicationServer {
   start() {
     let self = this
     this.app.listen(this.app.get("port"), () => {
-      console.log(`Server Listening for port: ${self.app.get("port")}`)
+      console.log(`Server Listening for port: 🌏 ${self.app.get("port")}`)
     })
   }
 }

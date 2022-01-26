@@ -75,24 +75,16 @@ class Blockchain {
       }
       block.time = parseInt(new Date().getTime().toString().slice(0, -3))
 
-      // block.height = _chainHeight + 1
-      // self.height = _chainHeight + 1
       block.hash = SHA256(JSON.stringify(block)).toString()
-
 
       let isChainValid = await self.validateChain()
       // console.log('isChainValid: ', isChainValid);
 
-      if (block) {
-        if (isChainValid === 'valid chain') {
-          self.chain.push(block)
-          resolve(block)
-        } else {
-          reject("Invalid chain")
-        }
-
+      if (isChainValid.length === 0) {
+        self.chain.push(block)
+        resolve(block)
       } else {
-        reject(Error("Error Processing Block"))
+        reject("Invalid chain")
       }
 
     })
@@ -139,13 +131,13 @@ class Blockchain {
   submitStar(address, message, signature, star) {
     let self = this
     return new Promise(async (resolve, reject) => {
-      let messageTime = parseInt(message.split(":")[1])
-      let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      // let messageTime = parseInt(message.split(":")[1])
+      // let currentTime = parseInt(new Date().getTime().toString().slice(0, -3))
 
       // ***********************************************************
       // Manually create time variables for testing purposes
-      // let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
-      // let currentTime = messageTime + 200
+      let messageTime = parseInt(new Date().getTime().toString().slice(0, -3))
+      let currentTime = messageTime + 200
       // ***********************************************************
 
       let timeElapsed = currentTime - messageTime
@@ -175,7 +167,10 @@ class Blockchain {
   getBlockByHash(hash) {
     let self = this
     return new Promise((resolve, reject) => {
-      let block = self.chain.filter(b => b.hash === hash)[0]
+      // let block = self.chain.filter(b => b.hash === hash)[0]
+      // let block = self.chain.find(b => b.hash === hash)[0] // find returns the an element while filter returns an array hence the [0].
+      let block = self.chain.find(b => b.hash === hash)
+
       if (block) {
         resolve(block)
       } else {
@@ -192,7 +187,9 @@ class Blockchain {
   getBlockByHeight(height) {
     let self = this
     return new Promise((resolve, reject) => {
-      let block = self.chain.filter(p => p.height === height)[0]
+      // let block = self.chain.filter(p => p.height === height)[0]
+      let block = self.chain.find(p => p.height === height)
+
       if (block) {
         resolve(block)
       } else {
@@ -211,16 +208,19 @@ class Blockchain {
     let self = this
     let stars = []
     return new Promise((resolve, reject) => {
+      // *****************************************//
+      //**** */ Q U E S T I O N for Reviewer: Should I convert this to a for of loop?
+      //**** */ the same as the case on the validatechain method?
+      // *****************************************//
+
       self.chain.forEach(async block => {
         let blockData = await block.getBData()
         // console.log("blockData", blockData)
-        // if (blockData) {
         if (blockData.address == address) {
           // stars.push(blockData.star)
           stars.push(blockData)
           // console.log("stars", stars)
         }
-        // }
       })
       // if (stars.length > 0) {
       if (stars) {
@@ -242,27 +242,31 @@ class Blockchain {
     let self = this
     let errorLog = []
     return new Promise(async (resolve, reject) => {
+      for (let block of self.chain) {
+        if (block.height > 0) {
 
-      self.chain.forEach(async block => {
-        let isBlockValid = await block.validate()
-        let previousBlock = await self.chain[self.chain.length - 1]
-        // console.log("previousBlock", previousBlock)
-        if (isBlockValid) {
+          let isBlockValid = await block.validate()
+          // console.log("isBlockValid: ", isBlockValid);
+
+          if (isBlockValid === false) {
+            errorLog.push({ "isBlockValid": isBlockValid, "block.height": block.height, "block.hash": block.hash })
+          }
+
+          let previousBlock = self.chain.find(b => b.height === block.height - 1)
+          // console.log("previousBlock(find): ", previousBlock);
+
           if (block.previousBlockHash !== previousBlock.hash) {
-            errorLog.push(
-              `Broken Chain.\nThis block and previous Block hashes don't match\n
-               Block height: ${block.height}:\n
-               ${block.previousBlockHash} !== ${previousBlock.hash}`
-            )
+            errorLog.push({
+              "doHashesMatch": block.previousBlockHash === previousBlock.hash,
+              "block.previousBlockHash": block.previousBlockHash,
+              "previousBlock.hash": previousBlock.hash
+            })
           }
         }
-      })
-      if (errorLog.length > 0) {
-        console.log("errorLog", errorLog)
-        resolve(errorLog)
-      } else {
-        resolve('valid chain')
       }
+
+      resolve(errorLog)
+
     })
   }
 }

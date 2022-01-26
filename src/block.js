@@ -47,7 +47,10 @@ class Block {
 
       // create a clone of the block to avoid changing the original object
       // setting the hash to null to recalculate the hash
-      const clone = Object.assign({}, self, { hash: null })
+      // const clone = Object.assign({}, self, { hash: null })
+
+      // Using the more modern spread operator 
+      const clone = { ...self, hash: null }
 
       // Recalculate the hash of the clone object for comparison
       const _verificationHash = SHA256(JSON.stringify(clone)).toString()
@@ -61,15 +64,25 @@ class Block {
 
       // if the hashes don't match resolve false
       if (_currentHash !== _verificationHash) {
-        console.log(`🥺-Hashes don't mactch-🥺\n ${_currentHash} !== ${_verificationHash}`)
+        console.log(`🥺-Hashes don't match-🥺\n ${_currentHash} !== ${_verificationHash}`)
         resolve(false)
       } else {
         // if the hashes are equal, resolve with boolean true
-        console.log(`😍-Hashes mactch-😍\n ${_currentHash} === ${_verificationHash}`)
+        console.log(`😍-Hashes match-😍\n ${_currentHash} === ${_verificationHash}`)
         resolve(true)
       }
     })
   }
+
+  // Compact validate function as per reviewer suggestion using object destructuring(spread operator `...`)
+  // validate() {
+  //   let self = this
+  //   return new Promise((resolve, reject) => {
+  //     let clone = { ...self, hash: null }
+  //     let _verificationHash = SHA256(JSON.stringify(clone)).toString()
+  //     resolve(self.hash === _verificationHash)
+  //   })
+  // }
 
   /**
    *  Auxiliary Method to return the block body (decoding the data)
@@ -97,6 +110,9 @@ class Block {
         resolve(jsonDecoded)
       } else if (self.height === 0) {
         console.log("Genesis block")
+      } else {
+        console.log("Error decoding the data")
+        reject("Error decoding the data")
       }
 
       //   else if (self.height === 0) {

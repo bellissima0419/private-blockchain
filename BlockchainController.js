@@ -120,7 +120,7 @@ class BlockchainController {
         let validation = await this.blockchain.validateChain()
 
         if (validation) {
-          return res.status(200).json(validation)
+          return res.status(200).json({ "errorLog": validation })
         } else {
           return res.status(500).send("An error happened!")
         }
